@@ -1,0 +1,67 @@
+version: '3.3'
+
+services:
+  db:
+    image: mysql:5.7
+    volumes:
+      - ./data/db:/var/lib/mysql
+      - ./data/logs:/var/log/mysql
+      - ./data/logs/general-log.log:/var/log/mysql/general-log.log
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: somewordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    command: mysqld --general-log=1 --general-log-file=/var/log/mysql/general-log.log
+    ports:
+      - 3307:3306
+
+  adminer:
+    image: adminer
+    ports:
+      - 7777:8080
+    depends_on:
+      - db
+
+  wordpress:
+    depends_on:
+      - db
+    build:
+      context: .
+      dockerfile: DockerfileWP
+      args:
+        buildno: 1
+        USER_ID: ${USER_ID:-33}
+        GROUP_ID: ${GROUP_ID:-33}
+    volumes:
+      - ./data/wp:/var/www/html
+      - ./myPHPconf.ini:/usr/local/etc/php/conf.d/conf.ini
+    ports:
+      - "8088:80"
+    expose:
+      - "8088"
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+      #WORDPRESS_DEBUG: 1
+      WORDPRESS_CONFIG_EXTRA: |
+          define('WP_CACHE', false );
+          define('WP_SITEURL', 'http://localhost:8088');
+          define('WP_HOME', 'http://localhost:8088');
+          // Enable WP_DEBUG mode
+          define( 'WP_DEBUG', true );
+          // Enable Debug logging to the /wp-content/debug.log file
+          define( 'WP_DEBUG_LOG', true );
+          // Disable display of errors and warnings
+          define( 'WP_DEBUG_DISPLAY', false );
+          @ini_set( 'display_errors', 0 );
+          // Use dev versions of core JS and CSS files (only needed if you are modifying these core files)
+          define( 'SCRIPT_DEBUG', true );
+      XDEBUG_CONFIG: remote_host=128.178.1.1
+      XDEBUG_CONFIG: idekey=PHPSTORM
+      PHP_IDE_CONFIG: serverName=test-app
+      PHP_XDEBUG_ENABLED: 1

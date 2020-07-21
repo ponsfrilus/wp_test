@@ -1,0 +1,46 @@
+FROM wordpress:5.3
+
+RUN apt-get update;
+RUN apt-get install -f -y msmtp msmtp-mta libldap2-dev less;
+
+# https://wp-cli.org/#installing
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
+    php wp-cli.phar --info && \
+    chmod +x wp-cli.phar && \
+    mv wp-cli.phar /usr/local/bin/wp && \
+    wp --info
+
+# SMTP config
+RUN echo 'sendmail_path = "/usr/bin/msmtp -C /etc/msmtprc -t"' >> /usr/local/etc/php/php.ini
+RUN echo 'sendmail_from = "noreply@epfl.ch"' >> /usr/local/etc/php/php.ini
+
+RUN touch /etc/msmtprc
+RUN echo "defaults" > /etc/msmtprc
+RUN echo "logfile        /var/log/msmtp.log" >> /etc/msmtprc
+RUN echo "" >> /etc/msmtprc
+RUN echo "account        epfl" >> /etc/msmtprc
+RUN echo "host           mail.epfl.ch" >> /etc/msmtprc
+RUN echo "port           25" >> /etc/msmtprc
+RUN echo "from           noreply@epfl.ch" >> /etc/msmtprc
+RUN echo "" >> /etc/msmtprc
+RUN echo "account default : epfl" >> /etc/msmtprc
+
+# XDEBUG
+RUN yes | pecl install xdebug
+
+# Enable Remote xdebug
+RUN echo "xdebug.idekey=PHPSTORM" >> /usr/local/etc/php/conf.d/xdebug.ini
+RUN echo "xdebug.default_enable=on" >> /usr/local/etc/php/conf.d/xdebug.ini
+RUN echo "xdebug.remote_enable=on" >> /usr/local/etc/php/conf.d/xdebug.ini
+RUN echo "xdebug.remote_autostart=off" >> /usr/local/etc/php/conf.d/xdebug.ini
+RUN echo "xdebug.remote_port=9000" >> /usr/local/etc/php/conf.d/xdebug.ini
+RUN echo "xdebug.remote_connect_back=off" >> /usr/local/etc/php/conf.d/xdebug.ini
+RUN echo "xdebug.profiler_enable=off" >> /usr/local/etc/php/conf.d/xdebug.ini
+RUN echo "xdebug.remote_host=128.178.1.1" >> /usr/local/etc/php/conf.d/xdebug.ini
+RUN docker-php-ext-enable xdebug
+
+RUN docker-php-ext-install ldap
+
+# CLEANUP
+RUN apt-get -y autoremove && apt-get -y clean;
+
