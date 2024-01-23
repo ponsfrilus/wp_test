@@ -1,4 +1,4 @@
-FROM wordpress:5.3
+FROM wordpress:6.4
 
 RUN apt-get update;
 RUN apt-get install -f -y msmtp msmtp-mta libldap2-dev less;
@@ -36,11 +36,10 @@ RUN echo "xdebug.remote_autostart=off" >> /usr/local/etc/php/conf.d/xdebug.ini
 RUN echo "xdebug.remote_port=9000" >> /usr/local/etc/php/conf.d/xdebug.ini
 RUN echo "xdebug.remote_connect_back=off" >> /usr/local/etc/php/conf.d/xdebug.ini
 RUN echo "xdebug.profiler_enable=off" >> /usr/local/etc/php/conf.d/xdebug.ini
-RUN echo "xdebug.remote_host=128.178.1.1" >> /usr/local/etc/php/conf.d/xdebug.ini
+RUN echo "xdebug.remote_host=192.168.1.1" >> /usr/local/etc/php/conf.d/xdebug.ini
 RUN docker-php-ext-enable xdebug
 
 RUN docker-php-ext-install ldap
 
 # CLEANUP
 RUN apt-get -y autoremove && apt-get -y clean;
-

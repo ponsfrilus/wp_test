@@ -2,18 +2,18 @@ version: '3.3'
 
 services:
   db:
-    image: mysql:5.7
+    image: mariadb:11.2
     volumes:
       - ./data/db:/var/lib/mysql
       - ./data/logs:/var/log/mysql
       - ./data/logs/general-log.log:/var/log/mysql/general-log.log
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: somewordpress
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: wordpress
-      MYSQL_PASSWORD: wordpress
-    command: mysqld --general-log=1 --general-log-file=/var/log/mysql/general-log.log
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-secret}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-wordpress}
+      MARIADB_USER: ${MARIADB_USER:-wordpress}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-secret}
+    command: mariadbd --general-log=1 --general-log-file=/var/log/mysql/general-log.log
     ports:
       - 3307:3306
 
@@ -45,7 +45,7 @@ services:
     environment:
       WORDPRESS_DB_HOST: db:3306
       WORDPRESS_DB_USER: wordpress
-      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_PASSWORD: secret
       WORDPRESS_DB_NAME: wordpress
       #WORDPRESS_DEBUG: 1
       WORDPRESS_CONFIG_EXTRA: |
@@ -61,7 +61,6 @@ services:
           @ini_set( 'display_errors', 0 );
           // Use dev versions of core JS and CSS files (only needed if you are modifying these core files)
           define( 'SCRIPT_DEBUG', true );
-      XDEBUG_CONFIG: remote_host=128.178.1.1
-      XDEBUG_CONFIG: idekey=PHPSTORM
+      XDEBUG_CONFIG: remote_host=128.178.1.1; idekey=PHPSTORM
       PHP_IDE_CONFIG: serverName=test-app
       PHP_XDEBUG_ENABLED: 1
